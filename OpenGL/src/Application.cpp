@@ -131,10 +131,14 @@ int main()
 #pragma endregion
 
 #pragma region Buffers
+	unsigned int vao;
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+	
 	unsigned int buffer;
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), positions, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), positions, GL_STATIC_DRAW);
 	
 	unsigned int ibo;
 	glGenBuffers(1, &ibo);
@@ -164,6 +168,9 @@ int main()
 
 	float b = 0.0f;
 	float increment = 0.05f;
+	
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 #pragma region Loop
 	/* Loop until the user closes the window */

@@ -6,6 +6,10 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include "IndexBuffer.h"
+#include "VertexBuffer.h"
+#include "Renderer.h"
+
 
 #pragma region Shaders
 struct ShaderProgramSource
@@ -111,92 +115,83 @@ int main()
 
 	std::cout << glGetString(GL_VERSION) << std::endl;
 	std::cout << glGetString(GL_RENDERER) << std::endl;
-	
-#pragma endregion
 
-#pragma region Data
-	float positions[] = {
-		-0.5f, -0.5f,
-		 0.5f, -0.5f,
-		 0.5f,  0.5f,
-		-0.5f,  0.5f
-	};
-
-	unsigned int indices []
-	{
-		0, 1, 2,
-		2, 3, 0
-	};
-	
-#pragma endregion
-
-#pragma region Buffers
-	unsigned int vao;
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-	
-	unsigned int buffer;
-	glGenBuffers(1, &buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), positions, GL_STATIC_DRAW);
-	
-	unsigned int ibo;
-	glGenBuffers(1, &ibo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
-#pragma endregion
-
-#pragma region Attributes
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
 #pragma endregion
 
 #pragma region Loading Shaders
-	const std::string filepath = "res/shaders/Basic.shader";
-	ShaderProgramSource source = ParseShader(filepath);
-	std::cout << "VERTEX : " << std::endl;
-	std::cout << source.VertexSource << std::endl;
-	std::cout << "FRAGMENT : " << std::endl;
-	std::cout << source.FragmentSource << std::endl;
+		const std::string filepath = "res/shaders/Basic.shader";
+		ShaderProgramSource source = ParseShader(filepath);
+		std::cout << "VERTEX : " << std::endl;
+		std::cout << source.VertexSource << std::endl;
+		std::cout << "FRAGMENT : " << std::endl;
+		std::cout << source.FragmentSource << std::endl;
 
-	unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
-	glUseProgram(shader);
-
-	int location = glGetUniformLocation(shader, "u_Color");
-	glUniform4f(location, 0.1f, 0.2f, 0.4f, 1.0f);
+		unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
+		GLCall(glUseProgram(shader));
+		GLCall(int location = glGetUniformLocation(shader, "u_Color"));
+		GLCall(glUniform4f(location, 0.1f, 0.2f, 0.4f, 1.0f));
 #pragma endregion
 
-	float b = 0.0f;
-	float increment = 0.05f;
-	
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+#pragma region Data
+	{
+		float positions[] = {
+			-0.5f, -0.5f,
+			 0.5f, -0.5f,
+			 0.5f,  0.5f,
+			-0.5f,  0.5f
+		};
+
+		unsigned int indices[] = {
+			0, 1, 2,
+			2, 3, 0
+		};
+
+#pragma endregion
+
+#pragma region Buffers
+		unsigned int vao;
+		GLCall(glGenVertexArrays(1, &vao));
+		GLCall(glBindVertexArray(vao));
+
+		VertexBuffer vb(positions, 4 * 2 * sizeof(float));
+
+#pragma region Attributes
+		GLCall(glEnableVertexAttribArray(0));
+		GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
+#pragma endregion
+		
+		IndexBuffer ib(indices, 6);
+		ib.Bind();
+#pragma endregion
+
+		float b = 0.0f;
+		float increment = 0.05f;
 
 #pragma region Loop
-	/* Loop until the user closes the window */
-	while (!glfwWindowShouldClose(window))
-	{
-		/* Render here */
-		glClear(GL_COLOR_BUFFER_BIT);
+		/* Loop until the user closes the window */
+		while (!glfwWindowShouldClose(window))
+		{
+			/* Render here */
+			GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
-		glUniform4f(location, 0.1f, 0.2f, b, 1.0f);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+			GLCall(glUniform4f(location, 0.1f, 0.2f, b, 1.0f));
+			GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 
-		if (b >= 1.0f) increment = -0.05f;
-		else if (b <= 0.0f) increment = 0.05f;
+			if (b >= 1.0f) increment = -0.05f;
+			else if (b <= 0.0f) increment = 0.05f;
+			b += increment;
 
-		b += increment;
-		
-		/* Swap front and back buffers */
-		glfwSwapBuffers(window);
+			/* Swap front and back buffers */
+			glfwSwapBuffers(window);
 
-		/* Poll for and process events */
-		glfwPollEvents();
-	}
+			/* Poll for and process events */
+			glfwPollEvents();
+		}
+
 #pragma endregion
 
-	glDeleteProgram(shader);
-
+		glDeleteProgram(shader);
+	}
 	glfwTerminate();
 	return 0;
 }

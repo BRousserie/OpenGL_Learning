@@ -19,4 +19,8 @@
       <Filter>Fichiers sources</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\iostream" />
+    <None Include="res\shaders\Basic.shader" />
+  </ItemGroup>
 </Project>

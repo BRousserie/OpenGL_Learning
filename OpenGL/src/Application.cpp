@@ -94,9 +94,12 @@ int main()
 		ImGui::StyleColorsDark();
 		ImGui_ImplGlfw_InitForOpenGL(window, true);
 		ImGui_ImplOpenGL3_Init("#version 130");
+		
 
-
-		float x = 0.0f, y = 0.0f, b = 0.0f;
+		float b = 0.0f;
+		// In order to use vec2 for the sliders to have them on the same line and less code redundancy,
+		// BUT to also have coherent min and max values, I use a vec2 per axis instead of vec2 per image
+		glm::vec2 horizontal(0, 0), vertical(0, 0);
 		float increment = 0.05f;
 
 		/* Loop until the user closes the window */
@@ -106,11 +109,21 @@ int main()
 			renderer.Clear();
 
 			shader.SetUniform4f("u_Color", 0.1f, 0.2f, b, 1.0f);
-			glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, 0));
-			mvp = proj * view * model;
-			shader.SetUniformMat4f("u_MVP", mvp);
+			{
+				model = glm::translate(glm::mat4(1.0f), glm::vec3(horizontal.x, vertical.x, 0));
+				mvp = proj * view * model;
+				shader.SetUniformMat4f("u_MVP", mvp);
+				
+				renderer.Draw(va, ib, shader);
+			}
 
-			renderer.Draw(va, ib, shader);
+			{
+				model = glm::translate(glm::mat4(1.0f), glm::vec3(horizontal.y, vertical.y, 0));
+				mvp = proj * view * model;
+				shader.SetUniformMat4f("u_MVP", mvp);
+				
+				renderer.Draw(va, ib, shader);
+			}
 
 			if (b >= 1.0f) increment = -0.05f;
 			else if (b <= 0.0f) increment = 0.05f;
@@ -121,9 +134,9 @@ int main()
 			ImGui::NewFrame();
 
 			{
-				ImGui::Begin("Hello, world!");
-				ImGui::SliderFloat("x", &x, -640.0f, 640.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-				ImGui::SliderFloat("y", &y, -360.0f, 360.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+				ImGui::Begin("Move ");
+				ImGui::SliderFloat2("Horizontal translations", &horizontal.x, -1920.0f, 640.0f);
+				ImGui::SliderFloat2("Vertical translations", &vertical.x, -720.f, 720.f);
 				ImGui::End();
 			}
 

@@ -13,6 +13,9 @@
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_opengl3.h"
+#include "imgui/imgui_impl_glfw.h"
 
 
 int main()
@@ -86,8 +89,14 @@ int main()
 		shader.SetUniform1i("u_Texture", 0);
 
 		Renderer renderer;
-		
-		float b = 0.0f;
+
+		ImGui::CreateContext();
+		ImGui::StyleColorsDark();
+		ImGui_ImplGlfw_InitForOpenGL(window, true);
+		ImGui_ImplOpenGL3_Init("#version 130");
+
+
+		float x = 0.0f, y = 0.0f, b = 0.0f;
 		float increment = 0.05f;
 
 		/* Loop until the user closes the window */
@@ -95,8 +104,11 @@ int main()
 		{
 			/* Render here */
 			renderer.Clear();
-			
+
 			shader.SetUniform4f("u_Color", 0.1f, 0.2f, b, 1.0f);
+			glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, 0));
+			mvp = proj * view * model;
+			shader.SetUniformMat4f("u_MVP", mvp);
 
 			renderer.Draw(va, ib, shader);
 
@@ -104,13 +116,29 @@ int main()
 			else if (b <= 0.0f) increment = 0.05f;
 			b += increment;
 
+			ImGui_ImplOpenGL3_NewFrame();
+			ImGui_ImplGlfw_NewFrame();
+			ImGui::NewFrame();
+
+			{
+				ImGui::Begin("Hello, world!");
+				ImGui::SliderFloat("x", &x, -640.0f, 640.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+				ImGui::SliderFloat("y", &y, -360.0f, 360.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+				ImGui::End();
+			}
+
+			ImGui::Render();
+			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 			/* Swap front and back buffers */
 			glfwSwapBuffers(window);
 
 			/* Poll for and process events */
 			glfwPollEvents();
 		}
-
+		ImGui_ImplOpenGL3_Shutdown();
+		ImGui_ImplGlfw_Shutdown();
+		ImGui::DestroyContext();
 	}
 	glfwTerminate();
 	return 0;
